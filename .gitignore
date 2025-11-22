@@ -1,8 +1,8 @@
 .terraform/
-/terraform.tfvars
-cluster/secret.yaml
+*/terraform.tfvars
 .env
 .terraform.lock.hcl
 terraform.tfstate
 terraform.tfstate.*
 .terraform.tfvars
+*.pem
