@@ -1,0 +1,8 @@
+.terraform/
+/terraform.tfvars
+cluster/secret.yaml
+.env
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.*
+.terraform.tfvars
