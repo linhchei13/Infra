@@ -49,12 +49,18 @@ resource "openstack_networking_router_interface_v2" "app_router_interface" {
 
 # --- 2. SECURITY GROUP ---
 resource "openstack_compute_secgroup_v2" "app_sg" {
-  name        = "app-security-group-simple"
-  description = "Security group cho single API backend"
+  name        = "app-security-group"
+  description = "Security group cho backend"
 
   rule {
     from_port   = 22
     to_port     = 22
+    ip_protocol = "tcp"
+    cidr        = "0.0.0.0/0" # Cho phép SSH để debug
+  }
+   rule {
+    from_port   = 443
+    to_port     = 443
     ip_protocol = "tcp"
     cidr        = "0.0.0.0/0" # Cho phép SSH để debug
   }
@@ -68,19 +74,6 @@ resource "openstack_compute_secgroup_v2" "app_sg" {
 }
 
 # --- 3. COMPUTE INSTANCE (1 VM duy nhất) ---
-# Render User Data template
-data "template_file" "user_data_script" {
-  template = file("${path.module}/templates/user_data.sh.tpl")
-  vars = {
-    aws_access_key_id     = var.aws_access_key_id
-    aws_secret_access_key = var.aws_secret_access_key
-    aws_default_region    = var.aws_default_region
-    s3_bucket_name        = var.s3_bucket_name
-    sqs_queue_url         = var.sqs_queue_url
-    dynamo_table_name     = var.dynamo_table_name
-  }
-}
-
 # Tạo port mạng trước để dễ gán Floating IP sau này
 resource "openstack_networking_port_v2" "app_port" {
   name           = "app-port-simple"
@@ -98,9 +91,8 @@ resource "openstack_compute_instance_v2" "app_server" {
   flavor_name     = var.flavor_name
   key_pair        = var.key_pair_name
   
-  user_data       = data.template_file.user_data_script.rendered
+  #user_data       = data.template_file.user_data_script.rendered
 
-  # Gán port đã tạo ở trên vào VM
   network {
     port = openstack_networking_port_v2.app_port.id
   }
@@ -117,4 +109,16 @@ resource "openstack_networking_floatingip_v2" "vm_fip" {
 resource "openstack_networking_floatingip_associate_v2" "vm_fip_assoc" {
   floating_ip = openstack_networking_floatingip_v2.vm_fip.address
   port_id     = openstack_networking_port_v2.app_port.id # Gán vào port của VM
+}
+
+# --- 5. OBJECT STORAGE (SWIFT) ---
+resource "openstack_objectstorage_container_v1" "swift_container" {
+  name = var.swift_container_name
+  
+  # Tùy chọn: Đặt container thành public read nếu cần
+  # container_read = ".r:*"
+  
+  metadata = {
+    project = var.project_name
+  }
 }

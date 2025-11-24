@@ -15,11 +15,6 @@ variable "s3_bucket_name" {
   type        = string
 }
 
-variable "dynamodb_table_name" {
-    description = "Tên bảng DynamoDB lưu kết quả"
-    type = string
-    default = "RecognitionResults"
-}
 variable "aws_access_key" {
   type        = string
   description = "AWS Access Key ID"

@@ -7,3 +7,8 @@ output "backend_private_ip" {
     description = "Địa chỉ IP Private trong mạng nội bộ OpenStack"
     value = openstack_compute_instance_v2.app_server.access_ip_v4
 }
+
+output "swift_container_name" {
+  description = "Name of the created Swift container"
+  value       = openstack_objectstorage_container_v1.swift_container.name
+}
